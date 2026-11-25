@@ -7,6 +7,10 @@ typedef struct IDirectDrawPalette *LPDIRECTDRAWPALETTE;
 
 static const guid IID_IDirectDraw = { 0x9c59509a, 0x39bd, 0x11d1, { 0x8C,0x4A,0x00,0xC0,0x4F,0xD9,0x30,0xC5 }};
 
+// Windows CE 6.0 and later (e.g. Windows Embedded Compact 7) use the desktop
+// IID_IDirectDraw value for the same CE interface (same methods and order).
+static const guid IID_IDirectDrawCE6 = { 0x6C14DB80, 0xA733, 0x11CE, { 0xA5, 0x21, 0x00, 0x20, 0xAF, 0x0B, 0xE5, 0x60 }};
+
 typedef struct DDSCAPS
 {
     DWORD	dwCaps;
@@ -39,7 +43,16 @@ typedef struct DDCAPS
     DWORD	dwMaxOverlayStretch;
     DWORD   dwMiscCaps;
 
+    // Windows CE 6.0 and later only (video port capabilities); older
+    // versions want dwSize = DDCAPS_SIZE_OLD
+    DWORD	dwMinVideoStretch;
+    DWORD	dwMaxVideoStretch;
+    DWORD	dwMaxVideoPorts;
+    DWORD	dwCurrVideoPorts;
+
 } DDCAPS;
+
+#define DDCAPS_SIZE_OLD (sizeof(DDCAPS) - 4*sizeof(DWORD))
 
 typedef DDCAPS *LPDDCAPS;
 

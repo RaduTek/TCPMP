@@ -607,14 +607,22 @@ int DDrawCECreate(ddraw* p,LPDIRECTDRAW DD)
 	if (Model==MODEL_AXIM_X50)
 		return ERR_NOT_SUPPORTED; // buggy WM5 driver...
 
-	if (IDirectDraw_QueryInterface(DD,&IID_IDirectDraw,&p->DD)!=DD_OK)
+	if (IDirectDraw_QueryInterface(DD,&IID_IDirectDraw,&p->DD)!=DD_OK &&
+		IDirectDraw_QueryInterface(DD,&IID_IDirectDrawCE6,&p->DD)!=DD_OK)
 		return ERR_DEVICE_ERROR;
 
 	IDirectDraw_Release(DD);
 	IDirectDraw_SetCooperativeLevel(p->DD, NULL, DDSCL_NORMAL);
 
+	// CE 6.0+ DDCAPS first, then the shorter one older versions use
+	memset(&p->DDCaps,0,sizeof(p->DDCaps));
 	p->DDCaps.dwSize = sizeof(p->DDCaps);
-	IDirectDraw_GetCaps(p->DD,&p->DDCaps,NULL);
+	if (IDirectDraw_GetCaps(p->DD,&p->DDCaps,NULL) != DD_OK)
+	{
+		memset(&p->DDCaps,0,sizeof(p->DDCaps));
+		p->DDCaps.dwSize = DDCAPS_SIZE_OLD;
+		IDirectDraw_GetCaps(p->DD,&p->DDCaps,NULL);
+	}
 
 	//{ int i; for (i=0;i<sizeof(p->DDCaps)/4;++i)
 	//	DEBUG_MSG(DEBUG_VIDEO,T("DDRAW Caps %02x:%08x"),i*4,((int*)&p->DDCaps)[i]); }

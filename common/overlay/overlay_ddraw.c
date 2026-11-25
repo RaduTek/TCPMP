@@ -700,6 +700,13 @@ static int Create(ddraw* p)
 	GetProc(&p->p.Module,&DirectDrawCreate,T("DirectDrawCreate"),0);
 
 	if (!p->p.Module || DirectDrawCreate(NULL,&DD,NULL)!=DD_OK ||
+#if defined(TARGET_WINCE)
+		// Windows CE always takes the CE interface (overlay_ddrawce.c). CE 6.0
+		// and later reuse the desktop IID_IDirectDraw value, so the query below
+		// would succeed there and pick the desktop structures, which CE's
+		// DirectDraw rejects (the debug runtime raises ERROR_INVALID_PARAMETER).
+		1 ||
+#endif
 		IDirectDraw_QueryInterface(DD,&IID_IDirectDraw,&p->DD)!=DD_OK)
 	{
 		if (DD && DDrawCECreate(p,DD)==ERR_NONE)
