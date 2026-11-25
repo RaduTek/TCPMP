@@ -535,7 +535,7 @@ void WriteBlock(block* Block,int Ofs,const void* Src,int Length)
 
 void FreeBlock(block* p)
 {
-	if (p)
+	if (p && p->Ptr)
 	{
 #ifdef BLOCKGROUP
 		if (p->Id) //group
