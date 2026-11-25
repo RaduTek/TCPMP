@@ -633,7 +633,14 @@ int DDrawCECreate(ddraw* p,LPDIRECTDRAW DD)
 
 	if (p->SetupBlit && !p->DDCaps.dwVidMemTotal && 
 		(NodeEnumClass(NULL,RAW_ID) || NodeEnumClass(NULL,GAPI_ID)))
-		return ERR_NOT_SUPPORTED; // fallback to RawFrameBuffer or GAPI until things get fixed
+	{
+		// fallback to RawFrameBuffer or GAPI until things get fixed. The caller
+		// (overlay_ddraw.c Create) releases DD, which drops the reference p->DD
+		// holds (the original one was released above), and unloads DDRAW.DLL;
+		// so forget p->DD, or Delete() releases it again (double free).
+		p->DD = NULL;
+		return ERR_NOT_SUPPORTED;
+	}
 
 	p->p.DoPowerOff = 1;
 	p->p.Init = Init;
