@@ -595,6 +595,17 @@ static void UpdateClippingTimer(intface* p)
 		SetTimer(p->Win.Wnd,TIMER_CLIPPING,CLIPPING_CYCLE,NULL);
 	else
 		KillTimer(p->Win.Wnd,TIMER_CLIPPING);
+
+	// An overlay without colour key is drawn above everything, so a window
+	// or menu that opens over the video after clipping was turned off (on
+	// Windows CE activation often comes straight back to us, e.g. after a
+	// taskbar click) would be covered. While the video is shown unclipped,
+	// keep looking for overlapping windows: the TIMER_CLIPPING2 handler
+	// switches to clipping mode (hides the overlay) when one appears.
+	if (!p->Clipping && ShowVideo(p))
+		SetTimer(p->Win.Wnd,TIMER_CLIPPING2,CLIPPING2_CYCLE,NULL);
+	else
+		KillTimer(p->Win.Wnd,TIMER_CLIPPING2);
 }
 
 static bool_t IsOverlay(intface* p)
@@ -2985,7 +2996,7 @@ static bool_t Proc(intface* p, int Msg, uint32_t wParam, uint32_t lParam, int* R
 		if (wParam == TIMER_KEYINSEEK)
 			StopSeek(p);
 
-		if (wParam == TIMER_CLIPPING2 && ShowVideo(p) && !p->Clipping && IsOverlapped(p))
+		if (wParam == TIMER_CLIPPING2 && ShowVideo(p) && !p->Clipping && IsOverlay(p) && IsOverlapped(p))
 			UpdateClipping(p,1,1);
 		
 		if (wParam == TIMER_CLIPPING && ShowVideo(p) && p->Clipping)
